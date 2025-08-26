@@ -13,21 +13,23 @@ $umbrella_link = "link_to_umbrella_msi_package"
 
 ## Don't forget to check the vpn_profile at the end of this script, it's set up with reasonable defaults but no auto-fill for connection.
 ## With everything filled in as desired, deploy this script via select MDM or group-policy. If selectable have the script run under user-context for reliable installation and future auto-upgrade.
+## Will require reboot to start all processes if Umbrella is installed.
+## May require user privilige escalation depending on the enviroment and deployment scenario
 
 if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) 
 {
 	Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs; exit 
 }  
-Start-Process msiexec.exe -Wait -ArgumentList '/package $secure_client_link /quiet'
+Start-Process msiexec.exe -Wait -ArgumentList "/i `"$secure_client_link`" /qn"
 if ( $umbrella_installation )
 {
-Start-Process msiexec.exe -Wait -ArgumentList '/package $umbrella_link /quiet'
+Start-Process msiexec.exe -Wait -ArgumentList "/i `"$umbrella_link`" /qn"
 $org_file = "C:\\ProgramData\\Cisco\\Cisco Secure Client\\Umbrella\\OrgInfo.json"
 $data=@"  
 {  
-    "organizationId" : $organizationId,  
-    "fingerprint" : $fingerprint,  
-    "userId" : $userId  
+    "organizationId" : "$organizationId",  
+    "fingerprint" : "$fingerprint",  
+    "userId" : "$userId"  
 }  
 "@
 
